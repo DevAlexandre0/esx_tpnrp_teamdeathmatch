@@ -147,10 +147,10 @@ function checkReady()
                 startMatch()
             end
         else
-            TriggerClientEvent('chatMessage', -1, '', {255,255,255}, '^8Arena: ^1 unfair number of members! Red team: ' .. _cntRed .. ' blue team: '.. _cntBlue)    
+            notify("unfair number of members! Red team: " .. _cntRed .. " blue team: ".. _cntBlue, "error", 5000)
         end
     else
-        TriggerClientEvent('chatMessage', -1, '', {255,255,255}, '^8Arena: ^1 Not enough people cannot start the match!')
+        notify("Not enough people cannot start the match!", "error", 5000)
     end
 end
 
@@ -163,7 +163,7 @@ function startMatch()
     for k,v in pairs(Deathmatch["RedTeam"].player_list) do
         TriggerClientEvent('esx_tpnrp_teamdeathmatch:startMatch', k)
     end
-    TriggerClientEvent('chatMessage', -1, '', {255,255,255}, '^8Arena: ^1 The match has begun!')
+    notify("The match has begun!", "success", 5000)
 end
 
 function updateUI()
@@ -208,7 +208,7 @@ function checkMatch(team_name)
             for k,v in pairs(Deathmatch[team_name].player_list) do
                 TriggerClientEvent('esx_tpnrp_teamdeathmatch:matchFinished', k, Deathmatch, winTeam)
             end
-            TriggerClientEvent('chatMessage', -1, '', {255,255,255}, '^8Arena: ^1'.. Deathmatch[winTeam].name .. " won the final match!")
+            notify(Deathmatch[winTeam].name .. " won the final match!", "success", 5000)
             SetTimeout(15000, function()
                 -- Reset player inventory
                 -- tele back to start point
@@ -247,7 +247,7 @@ function checkMatch(team_name)
             for k,v in pairs(Deathmatch[team_name].player_list) do
                 TriggerClientEvent('esx_tpnrp_teamdeathmatch:youLose', k, Deathmatch, winTeam)
             end
-            TriggerClientEvent('chatMessage', -1, '', {255,255,255}, '^8Arena: ^1'.. Deathmatch[winTeam].name .. " won! Current score " .. Deathmatch[winTeam].score .. " - " .. Deathmatch[team_name].score .. " leaning in " .. Deathmatch[winTeam].name)
+            notify(Deathmatch[winTeam].name .. " won! Current score " .. Deathmatch[winTeam].score .. " - " .. Deathmatch[team_name].score .. " leaning in " .. Deathmatch[winTeam].name)
             SetTimeout(15000, function()
                 -- Call tele all players
                 -- Revive all players

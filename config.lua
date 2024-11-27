@@ -10,7 +10,7 @@ Config.MapCenter = {x = 2014.73, y = 2784.93, z = 49.11}
 
 Config.Deathmatch = {
     BlueTeam = {
-        name = "Đội Xanh",
+        name = "Blue Team",
         color = { r = 0, g = 128, b = 255},
         game_start_pos = { x = 2028.27, y = 2857.86, z = 50.17},
         enter_pos = { x = 2069.69, y = 2763.74, z = 49.11},
@@ -43,7 +43,7 @@ Config.Deathmatch = {
         }
     },
     RedTeam = {
-        name = "Đội Đỏ",
+        name = "Red Team",
         color = { r = 255, g = 0, b = 0},
         game_start_pos = { x = 2016.07, y = 2705.95, z = 49.95},
         enter_pos = { x = 2071.84, y = 2757.12, z = 49.02},
@@ -80,108 +80,131 @@ Config.Deathmatch = {
 
 Config.BuyMenu = {
     Knife = {
-        label = "0. Cận chiến",
+        label = "0. Melee",
         list = {
             {
-                label = "Búa",
+                label = "Battle Axe",
                 key = "WEAPON_BATTLEAXE"
             },
             {
-                label = "Mã tấu",
+                label = "Machete",
                 key = "WEAPON_MACHETE"
             },
             {
-                label = "Dao bấm",
+                label = "Switchblade",
                 key = "WEAPON_SWITCHBLADE"
             }
         }
     },
     Pistol = {
-        label = "1. Súng lục",
+        label = "1. Pistols",
         list = {
             {
                 label = "Pistol",
-                key = "WEAPON_PISTOL"
+                key = "WEAPON_PISTOL",
+                ammoType = "ammo-9",
+                ammo = 100
             },
             {
                 label = "AP Pistol",
-                key = "WEAPON_APPISTOL"
+                key = "WEAPON_APPISTOL",
+                ammoType = "ammo-9",
+                ammo = 100
             },
-            {
-                label = "Revolver",
-                key = "WEAPON_REVOLVER"
-            }
         }
     },
     ShortGun = {
-        label = "2. Shortgun",
+        label = "2. Shotguns",
         list = {
             {
-                label = "Sawnoff Shotgun",
-                key = "WEAPON_SAWNOFFSHOTGUN"
+                label = "Sawed-off Shotgun",
+                key = "WEAPON_SAWNOFFSHOTGUN",
+                ammoType = "ammo-shotgun",
+                ammo = 50
             },
             {
-                label = "Pump shotgun",
-                key = "WEAPON_PUMPSHOTGUN"
+                label = "Pump Shotgun",
+                key = "WEAPON_PUMPSHOTGUN",
+                ammoType = "ammo-shotgun",
+                ammo = 50
             },
-            {
-                label = "Heavy Shotgun",
-                key = "WEAPON_HEAVYSHOTGUN"
-            },
-            {
-                label = "Musket",
-                key = "WEAPON_MUSKET"
-            }
-            
         }
     },
     SMG = {
-        label = "3. Tiểu liên",
+        label = "3. Submachine Guns",
         list = {
             {
-                label = "Uzi",
-                key = "WEAPON_MICROSMG"
+                label = "Micro SMG (Uzi)",
+                key = "WEAPON_MICROSMG",
+                ammoType = "ammo-45",
+                ammo = 50
             },
             {
-                label = "MP5",
-                key = "WEAPON_SMG"
+                label = "SMG (MP5)",
+                key = "WEAPON_SMG",
+                ammoType = "ammo-9",
+                ammo = 50
             }
         }
     },
     Rifle = {
-        label = "4. Trung liên",
+        label = "4. Rifles",
         list = {
             {
-                label = "M4",
-                key = "WEAPON_CARBINERIFLE"
+                label = "Carbine Rifle (M4)",
+                key = "WEAPON_CARBINERIFLE",
+                ammoType = "ammo-rifle",
+                ammo = 200
             },
             {
-                label = "AK",
-                key = "WEAPON_ASSAULTRIFLE"
+                label = "Assault Rifle (AK)",
+                key = "WEAPON_ASSAULTRIFLE",
+                ammoType = "ammo-rifle2",
+                ammo = 200
             },
             {
-                label = "AWM",
-                key = "WEAPON_SNIPERRIFLE"
+                label = "Sniper Rifle (M82)",
+                key = "WEAPON_HEAVYSNIPER",
+                ammoType = "ammo-heavysniper",
+                ammo = 20
             }
         }
     },
-    Genade = {
-        label = "5. Lưu đạn",
+    Grenade = {
+        label = "5. Grenades",
         list = {
             {
-                label = "Genade",
-                key = "WEAPON_GRENADE"
+                label = "Grenade",
+                key = "WEAPON_GRENADE",
+                ammo = 2
             },
             {
-                label = "Molotov",
-                key = "WEAPON_MOLOTOV"
+                label = "Molotov Cocktail",
+                key = "WEAPON_MOLOTOV",
+                ammo = 2
             },
             {
-                label = "Lưu đạn khói",
-                key = "WEAPON_SMOKEGRENADE"
+                label = "Smoke Grenade",
+                key = "WEAPON_SMOKEGRENADE",
+                ammo = 2
             }
-            
         }
-        
+    },
+    Misc = {
+        label = "6. Misc",
+        list = {
+            {
+                label = "Bandage",
+                key = "bandage"
+            },
+            {
+                label = "Medikit",
+                key = "medikit"
+            },
+            {
+                label = "Bulletproof Vest",
+                key = "armour"
+            },
+        }
     }
 }

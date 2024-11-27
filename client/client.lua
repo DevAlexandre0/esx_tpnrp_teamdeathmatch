@@ -23,7 +23,9 @@ function notify(text,type,duration)
 end
 
 RegisterCommand("quitmatch", function()
+	local _playerPed = PlayerPedId()
     Quit = true
+	ESX.Game.Teleport(_playerPed, vector3(Config.Deathmatch["BlueTeam"].enter_pos.x,Config.Deathmatch["BlueTeam"].enter_pos.y, Config.Deathmatch["BlueTeam"].enter_pos.z))
 end, false)
 
 Citizen.CreateThread(function()
@@ -140,7 +142,6 @@ Citizen.CreateThread(function()
 				if isInMatch then
 					if(GetDistanceBetweenCoords(coords, v.game_start_pos.x, v.game_start_pos.y, v.game_start_pos.z, true) < Config.Size.x) then
 						isInMarker  = true
-						ESX.ShowHelpNotification("Press E to join " ..  v.name)
 						if IsControlJustReleased(0, Keys['E']) then
 							ShowBuyMenu()
 						end
@@ -181,7 +182,13 @@ Citizen.CreateThread(function()
 		Citizen.Wait(0)
 		if isEnableTeamDeathmatch then
 			if HasAlreadyEnteredMarker and not isInMatch then
-				ESX.ShowHelpNotification("Press ~g~E ~w~to join " ..  Config.Deathmatch[CurrentActionData.zone].name)
+				lib.showTextUI("Press [E] to join " .. Config.Deathmatch[CurrentActionData.zone].name, {
+					position = 'right-center',  -- Optional: specify the position of the text UI
+					duration = 5000              -- Optional: specify how long the text UI will stay visible
+				})
+			else
+                -- Optionally, hide the text UI when not in the marker or in a match
+                lib.hideTextUI()
 			end
 
 			if IsControlJustReleased(0, Keys['E']) and HasAlreadyEnteredMarker and not isInMatch then
