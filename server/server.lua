@@ -1,4 +1,4 @@
-ESX = nil
+ESX = exports["es_extended"]:getSharedObject()
 isEnableMatch = true
 isMatchStart = false
 Deathmatch = {
@@ -15,7 +15,13 @@ Deathmatch = {
 }
 matchWin = 3 -- 2 (bo3), 3 (bo5), 16 (bo30)
 
-TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+function notify(source, text, type, duration)
+    TriggerClientEvent('lib:notify', source, {
+        description = text,
+        type = type,
+        duration = duration or 3000
+    })
+end
 
 ESX.RegisterServerCallback('esx_tpnrp_teamdeathmatch:getStatus', function(source, cb)
     local _source = source
@@ -55,7 +61,7 @@ AddEventHandler('esx_tpnrp_teamdeathmatch:joinTeam', function(team_name)
                 updateUI()
             end
         else
-            TriggerClientEvent("pNotify:SendNotification", _source, "The match is going on. You cannot participate!")
+            notify(_source, "The match is going on. You cannot participate!", "error", 5000)
         end
     end
 end)
@@ -102,11 +108,8 @@ AddEventHandler('esx_tpnrp_teamdeathmatch:quit', function(team_name)
     local xPlayer = ESX.GetPlayerFromId(source)
     if xPlayer ~= nil then
         if isPlayerInMatch(_source) then
-            local _player = ESX.GetPlayerFromId(_source)
-            for i=1, #_player.loadout, 1 do
-                _player.removeWeapon(_player.loadout[i].name)
-            end
-            removePlayerFromMatch(_source)
+            exports.ox_inventory:ClearInventory(_source)
+            removePlayerFromMatch(_source, team_name) -- Ensure the team_name is passed here
             checkAllMatch()
         end
     end
@@ -212,14 +215,11 @@ function checkMatch(team_name)
                 for k,v in pairs(Deathmatch[winTeam].player_list) do
                     if v.isDead then
                         Deathmatch[winTeam].player_list[k].isDead = false
+                        exports.ox_inventory:ClearInventory(k)
                         TriggerClientEvent('esx_ambulancejob:revive', k)
                     end
-                    SetTimeout(1500, function() 
-                        local _player = ESX.GetPlayerFromId(k)
-                        for i=1, #_player.loadout, 1 do
-                            -- print("removed gun from " .. v.name)
-                            _player.removeWeapon(_player.loadout[i].name)
-                        end
+                    SetTimeout(1500, function()
+                        exports.ox_inventory:ClearInventory(k)
                         TriggerClientEvent('esx_tpnrp_teamdeathmatch:endMatch', k, winTeam, winTeam)
                     end)
                 end
@@ -227,14 +227,11 @@ function checkMatch(team_name)
                 for k,v in pairs(Deathmatch[team_name].player_list) do
                     if v.isDead then
                         Deathmatch[team_name].player_list[k].isDead = false
+                        exports.ox_inventory:ClearInventory(k)
                         TriggerClientEvent('esx_ambulancejob:revive', k)
                     end
                     SetTimeout(1500, function() 
-                        local _player = ESX.GetPlayerFromId(k)
-                        for i=1, #_player.loadout, 1 do
-                            -- print("removed gun from " .. v.name)
-                            _player.removeWeapon(_player.loadout[i].name)
-                        end
+                        exports.ox_inventory:ClearInventory(k)
                         TriggerClientEvent('esx_tpnrp_teamdeathmatch:endMatch', k, team_name, winTeam)
                     end)
                 end
@@ -258,11 +255,13 @@ function checkMatch(team_name)
                 for k,v in pairs(Deathmatch[winTeam].player_list) do
                     if v.isDead then
                         Deathmatch[winTeam].player_list[k].isDead = false
+                        exports.ox_inventory:ClearInventory(k)
                         TriggerClientEvent('esx_ambulancejob:revive', k)
                     end
                     Deathmatch[winTeam].player_list[k].ckill = 0
                     SetTimeout(1000, function() 
                         -- print("Tele " .. k .. " Team: " .. winTeam)
+                        exports.ox_inventory:ClearInventory(k)
                         TriggerClientEvent('esx_tpnrp_teamdeathmatch:newRound', k, winTeam)
                     end)
                 end
@@ -270,11 +269,13 @@ function checkMatch(team_name)
                 for k,v in pairs(Deathmatch[team_name].player_list) do
                     if v.isDead then
                         Deathmatch[team_name].player_list[k].isDead = false
+                        exports.ox_inventory:ClearInventory(k)
                         TriggerClientEvent('esx_ambulancejob:revive', k)
                     end
                     Deathmatch[team_name].player_list[k].ckill = 0
                     SetTimeout(1000, function() 
                         -- print("Tele " .. k .. " Team: " .. team_name)
+                        exports.ox_inventory:ClearInventory(k)
                         TriggerClientEvent('esx_tpnrp_teamdeathmatch:newRound', k, team_name)
                     end)
                 end
@@ -333,19 +334,14 @@ function isPlayerInMatch(_source)
     return false
 end
 
-function removePlayerFromMatch(_source)
-    -- Call update Game UI to all players Blue
-    for k,v in pairs(Deathmatch["BlueTeam"].player_list) do
-        if k == _source then
-            Deathmatch["BlueTeam"].player_list[_source] = nil
-            return true
-        end
-    end
-    -- Red
-    for k,v in pairs(Deathmatch["RedTeam"].player_list) do
-        if k == _source then
-            Deathmatch["RedTeam"].player_list[_source] = nil
-            return true
+function removePlayerFromMatch(_source, team_name)
+    -- Remove from the specified team
+    if Deathmatch[team_name] then
+        for k,v in pairs(Deathmatch[team_name].player_list) do
+            if k == _source then
+                Deathmatch[team_name].player_list[_source] = nil
+                return true
+            end
         end
     end
     return false
@@ -374,6 +370,97 @@ function AnountKill(_source, team_name)
     end
 end
 
+RegisterNetEvent('buyWeapon')
+AddEventHandler('buyWeapon', function(weaponName, count, ammo)
+    local playerId = source
+    if playerId and weaponName then
+
+        -- Add the weapon to the player's inventory
+        exports.ox_inventory:AddItem(playerId, weaponName, count)
+
+        -- Check if ammo is specified and add it separately
+        if ammo and ammo > 0 then
+            local ammoType = nil
+
+            -- Determine the ammo type based on the weaponName
+            if weaponName == "WEAPON_PISTOL" or weaponName == "WEAPON_APPISTOL" then
+                ammoType = "ammo-9"
+            elseif weaponName == "WEAPON_SAWNOFFSHOTGUN" or weaponName == "WEAPON_PUMPSHOTGUN" then
+                ammoType = "ammo-shotgun"
+            elseif weaponName == "WEAPON_MICROSMG" or weaponName == "WEAPON_SMG" then
+                ammoType = "ammo-45"
+            elseif weaponName == "WEAPON_CARBINERIFLE" then
+                ammoType = "ammo-rifle"
+            elseif weaponName == "WEAPON_ASSAULTRIFLE" then
+                ammoType = "ammo-rifle2"
+            elseif weaponName == "WEAPON_HEAVYSNIPER" then
+                ammoType = "ammo-heavysniper"
+            end
+
+            -- If ammo type is found, add the ammo separately
+            if ammoType then
+                exports.ox_inventory:AddItem(playerId, ammoType, ammo)
+            end
+        end
+    end
+end)
+
+
+
+local playerInventory = {}
+
+-- Function to save player's inventory
+function SavePlayerInventory(playerId)
+    -- Fetch all items from the player's inventory using ox_inventory:Search
+    local playerItems = exports.ox_inventory:GetInventoryItems(source)
+
+    -- Save the player's items to the playerInventory table
+    playerInventory[playerId] = {}
+    for _, item in pairs(playerItems) do
+        table.insert(playerInventory[playerId], {
+            name = item.name,
+            count = item.count,
+            metadata = item.metadata
+        })
+    end
+
+    -- Clear the player's inventory
+    exports.ox_inventory:ClearInventory(playerId)
+end
+
+function ClearInv(playerId)
+    exports.ox_inventory:ClearInventory(playerId)
+end
+
+-- Function to restore player's inventory
+function RestorePlayerInventory(playerId)
+    -- Check if the player's inventory was previously saved
+    if playerInventory[playerId] then
+        -- Add saved items back to the player's inventory
+        for _, item in pairs(playerInventory[playerId]) do
+            exports.ox_inventory:AddItem(playerId, item.name, item.count, item.metadata)
+        end
+
+        -- Clear the saved inventory data
+        playerInventory[playerId] = nil
+    end
+end
+
+-- Event handler for saving inventory
+RegisterNetEvent('inventory:save')
+AddEventHandler('inventory:save', function()
+    local playerId = source
+    SavePlayerInventory(playerId)
+end)
+
+-- Event handler for restoring inventory
+RegisterNetEvent('inventory:restore')
+AddEventHandler('inventory:restore', function()
+    local playerId = source
+    RestorePlayerInventory(playerId)
+end)
+
+
 
 function tablelength(T)
     local count = 0
@@ -382,20 +469,20 @@ function tablelength(T)
 end
 
 AddEventHandler('playerDropped', function(reason)
-	local _source = source
-	local xPlayer = ESX.GetPlayerFromId(_source)
+    local _source = source
+    local xPlayer = ESX.GetPlayerFromId(_source)
+
     if xPlayer ~= nil and isMatchStart then
         if isPlayerInMatch(_source) then
-            -- Remove player inventory
-            local _player = ESX.GetPlayerFromId(_source)
-            for i=1, #_player.loadout, 1 do
-                _player.removeWeapon(_player.loadout[i].name)
-            end
-            -- Remove player in match
+            -- Clear the player's entire inventory using ox_inventory
+            exports.ox_inventory:clearInventory(_source)
+
+            -- Remove player from match
             removePlayerFromMatch(_source)
         end
-	end
+    end
 end)
+
 
 function dump(o)
 	if type(o) == 'table' then

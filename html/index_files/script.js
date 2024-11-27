@@ -7,7 +7,7 @@ $(function(){
         } else if (event.data.type == "show_game_scoreboard") {
             $('#game_scoreboard').toggle();
         } else if (event.data.type == "update_game_ui") {
-            this.console.log(event.data);
+            //this.console.log(event.data);
             mapUI(event.data);
         } else if (event.data.type == "update_game_ui_win") {
             mapUI(event.data);
@@ -22,7 +22,7 @@ $(function(){
             // reset time
             startMatch();
         } else if (event.data.type == "endgame") {
-            Speak("Tráº­n Ä‘áº¥u Ä‘Ã£ káº¿t thÃºc!");
+            Speak("It's so bad!");
             $('#header').hide();
             this.location.reload();
         } else if(event.data.type == "update_game_ui_win_finished") {

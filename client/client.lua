@@ -1,4 +1,4 @@
-ESX = nil
+ESX = exports["es_extended"]:getSharedObject()
 HasAlreadyEnteredMarker = false
 LastZone = nil
 CurrentAction = nil
@@ -8,17 +8,25 @@ isInMatch = false
 isReady = false
 currentTeam = ""
 isEnableTeamDeathmatch = true
+Quit = false
 
 local Keys = {
 	["ESC"] = 322, ["BACKSPACE"] = 177, ["E"] = 38, ["ENTER"] = 18,	["LEFT"] = 174, ["RIGHT"] = 175, ["TOP"] = 27, ["DOWN"] = 173
 }
 
+function notify(text,type,duration)
+	lib.notify({
+		description = text,
+		type = type,
+		duration = duration or 3000
+	})
+end
+
+RegisterCommand("quitmatch", function()
+    Quit = true
+end, false)
+
 Citizen.CreateThread(function()
-	while ESX == nil do
-		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-		Citizen.Wait(0)
-	end
-	
 	while not ESX.IsPlayerLoaded() do 
         Citizen.Wait(500)
 	end
@@ -43,25 +51,34 @@ Citizen.CreateThread(function()
 	end
 end)
 
-AddEventHandler('gameEventTriggered', function (name, args)
-    if name == "CEventNetworkEntityDamage" and isInMatch then
-        local victim = args[1]
-        local attacker = args[2]
-        local victimDied = args[4]
-        
-        if victimDied == 1 then 
-            if IsEntityAPed(attacker) and IsPedAPlayer(attacker) and victim == PlayerPedId() then
-				-- I am dead
-				TriggerServerEvent("esx_tpnrp_teamdeathmatch:iamDead", currentTeam)
-			end
-			if IsEntityAPed(attacker) and IsPedAPlayer(attacker) and attacker == PlayerPedId() then
-				-- I killed 
-				TriggerServerEvent("esx_tpnrp_teamdeathmatch:iKilled", currentTeam)
-            end
-        end
-    end
+AddEventHandler('gameEventTriggered', function(name, args)
+    if name == "CEventNetworkEntityDamage" and args then
+        local victimEntity = args[1] -- Entity ID of the victim
+        local attackerEntity = args[2] -- Entity ID of the attacker
+        local victimDied = args[6] -- Death indicator (or assumed to be)
+		local weaponHash = args[7]
+		local playerPed = PlayerPedId()
 
+        -- Check if the victim is dead
+		if victimDied == 1 then
+			-- If attackerEntity is a valid entity, it means it's a player or NPC causing the damage
+			if attackerEntity == -1 then
+				attackerEntity = playerPed
+			end
+			if attackerEntity == playerPed then
+				TriggerServerEvent("esx_tpnrp_teamdeathmatch:iKilled", currentTeam)
+				
+			end
+
+			if victimEntity == playerPed then
+				TriggerServerEvent("esx_tpnrp_teamdeathmatch:iamDead", currentTeam)
+				
+			end
+		end
+    end
 end)
+    
+
 
 AddEventHandler('esx_tpnrp_teamdeathmatch:hasEnterMarker', function(zone)
 	CurrentAction     = 'shop_menu'
@@ -77,12 +94,13 @@ end)
 -- Display markers
 Citizen.CreateThread(function()
 	while true do
-		Citizen.Wait(1)
+		local sleep = 500
 		if isEnableTeamDeathmatch then
 			local coords = GetEntityCoords(PlayerPedId())
 
 			for k,v in pairs(Config.Deathmatch) do
 				if(GetDistanceBetweenCoords(coords, v.enter_pos.x, v.enter_pos.y, v.enter_pos.z, true) < Config.DrawDistance) then
+					sleep = 1
 					DrawMarker(1, v.enter_pos.x, v.enter_pos.y, v.enter_pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.Size.x + 1, Config.Size.y + 1, Config.Size.z, v.color.r, v.color.g, v.color.b, 100, false, true, 2, false, false, false, false)
 					ESX.Game.Utils.DrawText3D(vector3(v.enter_pos.x, v.enter_pos.y, v.enter_pos.z + 1.7), v.name, 1)
 				end
@@ -100,6 +118,7 @@ Citizen.CreateThread(function()
 				end
 			end
 		end
+		Citizen.Wait(sleep)
 	end
 end)
 
@@ -127,18 +146,17 @@ Citizen.CreateThread(function()
 						end
 					end
 					-- 
-					if(GetDistanceBetweenCoords(coords, Config.MapCenter.x, Config.MapCenter.y, Config.MapCenter.z, true) >= 200.0) then
+					if(GetDistanceBetweenCoords(coords, Config.MapCenter.x, Config.MapCenter.y, Config.MapCenter.z, true) >= 200.0) or Quit == true then
 						TriggerServerEvent("esx_tpnrp_teamdeathmatch:quit", currentTeam)
 						-- reset data
 						currentTeam = ""
 						isInMatch = false
 						isReady = false
+						Quit = false
 						SendNUIMessage({
 							type = "endgame"
 						})
-						TriggerEvent("pNotify:SendNotification", {
-							text = "Make a full spread over the area! Chat with other questions!"
-						})
+						notify("Make a full spread over the area! Chat with other questions!", "info", 5000)
 						ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin)
 							TriggerEvent('skinchanger:loadSkin', skin)
 						end)
@@ -170,10 +188,10 @@ Citizen.CreateThread(function()
 				JoinTeam(CurrentActionData.zone)
 			end
 			if isInMatch then
-				if IsControlJustPressed(0, 37) then
+				if IsControlJustPressed(0, 11) then
 					ToggleScoreboard(true)
 				end
-				if IsControlJustReleased(0, 37) then
+				if IsControlJustReleased(0, 11) then
 					ToggleScoreboard(false)
 				end
 			end
@@ -182,6 +200,7 @@ Citizen.CreateThread(function()
 end)
 
 function JoinTeam(name)
+	local _playerPed = PlayerPedId()
 	local elements = {}
 
     table.insert(elements, {
@@ -199,6 +218,7 @@ function JoinTeam(name)
         elements = elements
     }, function(data, menu)
         if data.current.value == "yes" then
+			TriggerServerEvent("inventory:save",_playerPed)
             TriggerServerEvent("esx_tpnrp_teamdeathmatch:joinTeam", name)
         end
         -- menuIsShowed = false
@@ -228,9 +248,7 @@ AddEventHandler("esx_tpnrp_teamdeathmatch:joinedMatch", function(name, game_data
 				TriggerEvent('skinchanger:loadClothes', skin, Config.Deathmatch[name].skin.female)
 			end
 		end)
-		TriggerEvent("pNotify:SendNotification", {
-			text = "You have participated " .. Config.Deathmatch[name].name .. " !"
-		})
+		notify("You have participated " .. Config.Deathmatch[name].name .. " !", "info", 5000)
 		currentTeam = name
 		SendNUIMessage({
 			type = "show_game_ui"
@@ -240,9 +258,7 @@ AddEventHandler("esx_tpnrp_teamdeathmatch:joinedMatch", function(name, game_data
 			game_ui = reMapData(game_data)
 		})
 		-- FreezeEntityPosition(_playerPed, true)
-		TriggerEvent("pNotify:SendNotification", {
-			text = "You need to get ready to start the game!"
-		})
+		notify("You need to get ready to start the game!", "info", 5000)
 	end)
 end)
 
@@ -288,9 +304,7 @@ AddEventHandler("esx_tpnrp_teamdeathmatch:newRound", function(team_name)
 	})
 	-- Tele player back to spawn point
 	ESX.Game.Teleport(_playerPed, vector3(Config.Deathmatch[team_name].game_start_pos.x,Config.Deathmatch[team_name].game_start_pos.y, Config.Deathmatch[team_name].game_start_pos.z),function() 
-		TriggerEvent("pNotify:SendNotification", {
-			text = "New game has started!"
-		})
+		notify("New game has started!", "info", 5000)
 	end)
 end)
 
@@ -301,9 +315,7 @@ AddEventHandler("esx_tpnrp_teamdeathmatch:endMatch", function(team_name, win_tea
 		ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin)
 			TriggerEvent('skinchanger:loadSkin', skin)
 		end)
-		TriggerEvent("pNotify:SendNotification", {
-			text = "" .. Config.Deathmatch[win_team].name .. " won!"
-		})
+		notify("" .. Config.Deathmatch[win_team].name .. " won!", "info", 5000)
 		-- reset data
 		currentTeam = ""
 		isInMatch = false
@@ -312,6 +324,8 @@ AddEventHandler("esx_tpnrp_teamdeathmatch:endMatch", function(team_name, win_tea
 			type = "endgame"
 		})
 	end)
+	Wait(100)
+	TriggerServerEvent("inventory:restore",_playerPed)
 end)
 
 RegisterNetEvent("esx_tpnrp_teamdeathmatch:matchFinished")
@@ -344,61 +358,62 @@ AddEventHandler("esx_tpnrp_teamdeathmatch:anountVoice", function(_type, _kill)
 end)
 
 function ShowBuyMenu(type)
-	local elements = {}
-	local is_buy = false
-	if type == nil then
-		type = "main_buy"
-		for k,v in pairs(Config.BuyMenu) do
-			table.insert(elements, {
-				label = v.label,
-				value = k
-			})
-		end
-		is_buy = false
-		if not isReady then
-			table.insert(elements, {
-				label = "Ready",
-				value = "ready"
-			})
-		else
-			-- table.insert(elements, {
-			-- 	label = "Exit",
-			-- 	value = "quit"
-			-- })
-		end
-	else
-		for k,v in pairs(Config.BuyMenu[type].list) do
-			table.insert(elements, {
-				label = v.label,
-				value = v.key
-			})
-		end
-		is_buy = true
-	end
+    local elements = {}
+    local is_buy = false
+    if type == nil then
+        type = "main_buy"
+        for k, v in pairs(Config.BuyMenu) do
+            table.insert(elements, {
+                label = v.label,
+                value = k,
+            })
+        end
+        is_buy = false
+        if not isReady then
+            table.insert(elements, {
+                label = "Ready",
+                value = "ready"
+            })
+        else
+            -- table.insert(elements, {
+            --     label = "Exit",
+            --     value = "quit"
+            -- })
+        end
+    else
+        for k, v in pairs(Config.BuyMenu[type].list) do
+            table.insert(elements, {
+                label = v.label,
+                value = v.key,
+				ammoType = v.ammoType,
+				ammo = v.ammo
+            })
+        end
+        is_buy = true
+    end
 
     ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'buy_menu_' .. type, {
         title    = "Buy gun ",
         align    = 'top-left',
         elements = elements
     }, function(data, menu)
-		if is_buy then
-			-- print("Do buy " .. data.current.value)
-			GiveWeaponToPed(PlayerPedId(), GetHashKey(data.current.value), 200, false, true)
-			menuIsShowed = false
-        	menu.close()
-		else 
-			if data.current.value ~= "ready" then
-				ShowBuyMenu(data.current.value)
-			else 
-				TriggerServerEvent("esx_tpnrp_teamdeathmatch:playerReady", currentTeam)
-				TriggerEvent("pNotify:SendNotification", {
-					text = "Ready!",type = "success", timeout = math.random(1000, 10000)
-				})
-				isReady = true
-			end
-		end
-        -- menuIsShowed = false
-        -- menu.close()
+        if is_buy then
+            local weaponName = data.current.value
+			local ammo = data.current.ammo
+            -- Call the server to buy the weapon and ammo
+            TriggerServerEvent('buyWeapon', weaponName, 1, ammo) -- 1 weapon, 100 ammo as example
+            menuIsShowed = false
+            menu.close()
+            notify("You have bought: " .. data.current.label, "success", 5000)
+        else 
+            if data.current.value ~= "ready" then
+                ShowBuyMenu(data.current.value)
+            else 
+                TriggerServerEvent("esx_tpnrp_teamdeathmatch:playerReady", currentTeam)
+                notify("Ready!", "success", 5000)
+                isReady = true
+            end
+        end
     end, function(data, menu)
         menuIsShowed = false
         menu.close()
