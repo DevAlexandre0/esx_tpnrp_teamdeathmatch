@@ -369,10 +369,24 @@ function AnountKill(_source, team_name)
         TriggerClientEvent('esx_tpnrp_teamdeathmatch:anountVoice', k, "enemy", _kill)
     end
 end
+-- -- Initialize a table to store player points
+-- local playerPoints = {}
+
+-- -- Function to set or update player points
+-- function setPlayerPoints(playerId, points)
+--     playerPoints[playerId] = points
+-- end
+
+-- -- Function to get player points
+-- function getPlayerPoints(playerId)
+--     return playerPoints[playerId] or 0 -- Defaults to 0 if points are not set
+-- end
+
 
 RegisterNetEvent('buyWeapon')
 AddEventHandler('buyWeapon', function(weaponName, count, ammo)
     local playerId = source
+    --local playerPoints = getPlayerPoints(playerId)
     if playerId and weaponName then
 
         -- Add the weapon to the player's inventory
@@ -380,21 +394,13 @@ AddEventHandler('buyWeapon', function(weaponName, count, ammo)
 
         -- Check if ammo is specified and add it separately
         if ammo and ammo > 0 then
-            local ammoType = nil
+            local ammoType = {"ammo-9","ammo-shotgun","ammo-rifle","ammo-rifle2"}
 
-            -- Determine the ammo type based on the weaponName
-            if weaponName == "WEAPON_PISTOL" or weaponName == "WEAPON_APPISTOL" then
-                ammoType = "ammo-9"
-            elseif weaponName == "WEAPON_SAWNOFFSHOTGUN" or weaponName == "WEAPON_PUMPSHOTGUN" then
-                ammoType = "ammo-shotgun"
-            elseif weaponName == "WEAPON_MICROSMG" or weaponName == "WEAPON_SMG" then
-                ammoType = "ammo-45"
-            elseif weaponName == "WEAPON_CARBINERIFLE" then
-                ammoType = "ammo-rifle"
-            elseif weaponName == "WEAPON_ASSAULTRIFLE" then
-                ammoType = "ammo-rifle2"
-            elseif weaponName == "WEAPON_HEAVYSNIPER" then
-                ammoType = "ammo-heavysniper"
+            for k,v in pairs(ammoType) do
+                if v == weaponName then
+                    ammoType = v
+                    break
+                end
             end
 
             -- If ammo type is found, add the ammo separately

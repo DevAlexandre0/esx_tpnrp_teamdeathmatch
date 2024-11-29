@@ -123,7 +123,7 @@ function startTimer(duration, display) {
 function startMatch() {
     _stopTimer = false;
     $('#who_won').hide();
-    var fiveMinutes = 60 * 3,
+    var fiveMinutes = 60 * 5,
         display = $('#time_counter');
     startTimer(fiveMinutes, display);
     Speak("The match has started!");

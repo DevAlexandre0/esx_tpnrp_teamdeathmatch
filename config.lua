@@ -4,15 +4,15 @@ Config.DrawDistance = 100
 Config.Size         = {x = 1.5, y = 1.5, z = 1.5}
 Config.BuyZoneSize  = {x = 4, y = 4, z = 4}
 Config.Color        = {r = 0, g = 128, b = 255}
-Config.TeamDeathMatchBlip = { x = 2071.08, y = 2761.78, z = 50.28}
-Config.Spectate = {x = 1970.84, y = 2773.39, z = 59.38}
+--Config.TeamDeathMatchBlip = { x = 2071.08, y = 2761.78, z = 50.28}
+--Config.Spectate = {x = 1970.84, y = 2773.39, z = 59.38}
 Config.MapCenter = {x = 2460.720, y = 4976.754, z = 51.567}
 
 Config.Deathmatch = {
     BlueTeam = {
         name = "Blue Team",
         color = { r = 0, g = 128, b = 255},
-        game_start_pos = { x = 2418.695, y = 4962.189, z = 46.099},
+        game_start_pos = { x = 2423.136, y = 4968.331, z = 46.119},
         enter_pos = { x = 2393.350, y = 4846.089, z = 39.918},
     },
     RedTeam = {
@@ -26,24 +26,6 @@ Config.Deathmatch = {
 -- Config.Uniforms = 
 
 Config.BuyMenu = {
-    Knife = {
-        id = 0,
-        label = "Melee",
-        list = {
-            {
-                label = "Battle Axe",
-                key = "WEAPON_BATTLEAXE"
-            },
-            {
-                label = "Machete",
-                key = "WEAPON_MACHETE"
-            },
-            {
-                label = "Switchblade",
-                key = "WEAPON_SWITCHBLADE"
-            }
-        }
-    },
     Pistol = {
         id = 1,
         label = "Pistols",
@@ -51,14 +33,12 @@ Config.BuyMenu = {
             {
                 label = "Pistol",
                 key = "WEAPON_PISTOL",
-                ammoType = "ammo-9",
-                ammo = 100
+                --cost = 2
             },
             {
                 label = "AP Pistol",
                 key = "WEAPON_APPISTOL",
-                ammoType = "ammo-9",
-                ammo = 100
+                --cost = 2
             },
         }
     },
@@ -67,16 +47,9 @@ Config.BuyMenu = {
         label = "Shotguns",
         list = {
             {
-                label = "Sawed-off Shotgun",
-                key = "WEAPON_SAWNOFFSHOTGUN",
-                ammoType = "ammo-shotgun",
-                ammo = 50
-            },
-            {
                 label = "Pump Shotgun",
                 key = "WEAPON_PUMPSHOTGUN",
-                ammoType = "ammo-shotgun",
-                ammo = 50
+                --cost = 4
             },
         }
     },
@@ -85,16 +58,9 @@ Config.BuyMenu = {
         label = "Submachine Guns",
         list = {
             {
-                label = "Micro SMG (Uzi)",
-                key = "WEAPON_MICROSMG",
-                ammoType = "ammo-45",
-                ammo = 50
-            },
-            {
                 label = "SMG (MP5)",
                 key = "WEAPON_SMG",
-                ammoType = "ammo-9",
-                ammo = 50
+                --cost = 3
             }
         }
     },
@@ -105,21 +71,13 @@ Config.BuyMenu = {
             {
                 label = "Carbine Rifle (M4)",
                 key = "WEAPON_CARBINERIFLE",
-                ammoType = "ammo-rifle",
-                ammo = 200
+                --cost = 4
             },
             {
                 label = "Assault Rifle (AK)",
                 key = "WEAPON_ASSAULTRIFLE",
-                ammoType = "ammo-rifle2",
-                ammo = 200
+                --cost = 4
             },
-            {
-                label = "Sniper Rifle (M82)",
-                key = "WEAPON_HEAVYSNIPER",
-                ammoType = "ammo-heavysniper",
-                ammo = 20
-            }
         }
     },
     Grenade = {
@@ -129,17 +87,12 @@ Config.BuyMenu = {
             {
                 label = "Grenade",
                 key = "WEAPON_GRENADE",
-                ammo = 2
-            },
-            {
-                label = "Molotov Cocktail",
-                key = "WEAPON_MOLOTOV",
-                ammo = 2
+                --cost = 2
             },
             {
                 label = "Smoke Grenade",
                 key = "WEAPON_SMOKEGRENADE",
-                ammo = 2
+                --cost = 1
             }
         }
     },
@@ -149,15 +102,57 @@ Config.BuyMenu = {
         list = {
             {
                 label = "Bandage",
-                key = "bandage"
-            },
-            {
-                label = "Medikit",
-                key = "medikit"
+                key = "bandage",
+                --cost = 1
             },
             {
                 label = "Bulletproof Vest",
-                key = "armour"
+                key = "armour",
+                --cost = 2
+            },
+            {
+                label = "M4 Scope",
+                key = "COMPONENT_AT_SCOPE_MEDIUM",
+                --cost = 1
+            },
+            {
+                label = "AK Scope",
+                key = "COMPONENT_AT_SCOPE_MACRO",
+                --cost = 1
+            },
+        }
+    },
+    Ammo = {
+        id = 7,
+        label = "Ammo",
+        list = {
+            {
+                label = "9mm",
+                key = "ammo-9",
+                desc ="Ammo: 20",
+                amount = "20",
+                --cost = 1
+            },
+            {
+                label = "12 gauge",
+                key = "ammo-shotgun",
+                desc ="Ammo: 10",
+                amount = "10",
+                --cost = 1
+            },
+            {
+                label = "5.56x45",
+                key = "ammo-rifle",
+                desc ="Ammo: 50",
+                amount = "50",
+                --cost = 1
+            },
+            {
+                label = "7.62x39",
+                key = "ammo-rifle2",
+                desc ="Ammo: 50",
+                amount = "50",
+                --cost = 1
             },
         }
     }

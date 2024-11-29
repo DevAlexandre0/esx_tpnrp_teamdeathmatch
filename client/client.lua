@@ -35,7 +35,7 @@ Citizen.CreateThread(function()
 	
 	if ESX.IsPlayerLoaded() then
 		Citizen.Wait(81)
-		-- Draw blip Team Deathmatch
+		-- -- Draw blip Team Deathmatch
 		-- local blip = AddBlipForCoord(Config.TeamDeathMatchBlip.x, Config.TeamDeathMatchBlip.y, Config.TeamDeathMatchBlip.z)
 		-- SetBlipSprite(blip, 436)
 		-- SetBlipDisplay(blip, 4)
@@ -149,59 +149,60 @@ end)
 
 -- Menu Controls
 Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(0)
-        if isEnableTeamDeathmatch then
-            if HasAlreadyEnteredMarker and not isInMatch then
-                lib.showTextUI("Press [E] to join " .. Config.Deathmatch[CurrentActionData.zone].name, {
-                    position = 'right-center', -- Optional: specify the position of the text UI
-                    duration = 5000            -- Optional: specify how long the text UI will stay visible
-                })
-            else
-				local isOpen, text = lib.isTextUIOpen()
+	while true do
+		Citizen.Wait(0)
+		if isEnableTeamDeathmatch then
+			if HasAlreadyEnteredMarker and not isInMatch then
+				lib.showTextUI("Press [E] to join " .. Config.Deathmatch[CurrentActionData.zone].name, {
+					position = 'right-center',  -- Optional: specify the position of the text UI
+					duration = 5000              -- Optional: specify how long the text UI will stay visible
+				})
+			else
+                local isOpen, text = lib.isTextUIOpen()
 				if isOpen and (text == "Press [E] to join Blue Team" or text == "Press [E] to join Red Team") then
 					lib.hideTextUI()
 				end
-            end
+			end
 
-            if IsControlJustReleased(0, Keys['E']) and HasAlreadyEnteredMarker and not isInMatch then
-                JoinTeam(CurrentActionData.zone)
-            end
-
-            if isInMatch then
-                local scoreboard = false
-                if IsControlJustPressed(0, 11) then
-                    scoreboard = not scoreboard
-                    ToggleScoreboard(scoreboard)
-                end
-
-                AddEventHandler('gameEventTriggered', function(name, args)
-                    if name == "CEventNetworkEntityDamage" and args then
-                        local victimEntity = args[1] -- Entity ID of the victim
-                        local attackerEntity = args[2] -- Entity ID of the attacker
-                        local victimDied = args[6]    -- Death indicator (or assumed to be)
-                        local playerPed = PlayerPedId()
-
-                        -- Check if the victim is dead
-                        if victimDied == 1 then
-                            -- If attackerEntity is a valid entity, it means it's a player or NPC causing the damage
-                            if attackerEntity == -1 then
-                                attackerEntity = playerPed
-                            end
-                            if attackerEntity == playerPed then
-                                TriggerServerEvent("esx_tpnrp_teamdeathmatch:iKilled", currentTeam)
-                            end
-
-                            if victimEntity == playerPed then
-                                TriggerServerEvent("esx_tpnrp_teamdeathmatch:iamDead", currentTeam)
-                            end
-                        end
-                    end
-                end)
-            end
-        end
-    end
+			if IsControlJustReleased(0, Keys['E']) and HasAlreadyEnteredMarker and not isInMatch then
+				JoinTeam(CurrentActionData.zone)
+			end
+			if isInMatch then
+				local isScoreboardVisible = false
+				if IsControlJustPressed(0, 11) then
+					isScoreboardVisible = not isScoreboardVisible
+					ToggleScoreboard(isScoreboardVisible)
+				end
+				AddEventHandler('gameEventTriggered', function(name, args)
+					if name == "CEventNetworkEntityDamage" and args then
+						local victimEntity = args[1] -- Entity ID of the victim
+						local attackerEntity = args[2] -- Entity ID of the attacker
+						local victimDied = args[6] -- Death indicator (or assumed to be)
+						local playerPed = PlayerPedId()
+				
+						-- Check if the victim is dead
+						if victimDied == 1 then
+							-- If attackerEntity is a valid entity, it means it's a player or NPC causing the damage
+							if attackerEntity == -1 then
+								attackerEntity = playerPed
+							end
+							if attackerEntity == playerPed then
+								TriggerServerEvent("esx_tpnrp_teamdeathmatch:iKilled", currentTeam)
+								
+							end
+				
+							if victimEntity == playerPed then
+								TriggerServerEvent("esx_tpnrp_teamdeathmatch:iamDead", currentTeam)
+								
+							end
+						end
+					end
+				end)
+			end
+		end
+	end
 end)
+
 
 
 function JoinTeam(name)
@@ -416,11 +417,11 @@ function ShowBuyMenu(type)
         for k, v in pairs(Config.BuyMenu[type].list) do
             table.insert(elements, {
                 title = v.label,
-                description = "Ammo: " .. (v.ammo or 0),
+                description = v.desc,
                 event = 'buyMenu:buyWeapon',
                 args = {
                     weaponName = v.key,
-                    ammo = v.ammo or 0
+					amount = v.amount or 1
                 }
             })
         end
@@ -455,8 +456,8 @@ end)
 
 RegisterNetEvent('buyMenu:buyWeapon', function(data)
     local weaponName = data.weaponName
-    local ammo = data.ammo
-    TriggerServerEvent('buyWeapon', weaponName, 1, ammo)
+	local amount = data.amount
+    TriggerServerEvent('buyWeapon', weaponName, amount)
     lib.notify({
         title = "Purchase Complete",
         description = "You have bought: " .. weaponName,
